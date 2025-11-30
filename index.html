@@ -5,30 +5,30 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>XRP Live Global Dashboard</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://unpkg.com/httpx-map@1.2.4"></script> <!-- tiny 2D map with arcs -->
 <style>
   body{margin:0;background:#000;color:#fff;font-family:system-ui}
-  #mapViz{width:100%;height:560px;border-radius:0 0 1.5rem 1.5rem;overflow:hidden}
-  @media(max-width:768px){#mapViz{height:360px}}
+  #map{background:#000 url('https://unpkg.com/httpx-map@1.2.4/styles/dark.jpg') center/cover}
+  #map canvas{width:100%!important;height:100%!important}
+  #mapViz{height:560px}@media(max-width:768px){#mapViz{height:380px}}
 </style>
 </head>
-<body class="min-h-screen">
+<body>
 <div class="max-w-7xl mx-auto p-6 space-y-12">
   <h1 class="text-center text-5xl font-bold bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">
     XRP Live Global Dashboard
   </h1>
 
   <div class="grid lg:grid-cols-3 gap-8">
-    <!-- Map with arcs -->
-    <div class="lg:col-span-2 bg-gray-950 rounded-3xl overflow-hidden border border-cyan-900/40 shadow-2xl">
+    <div class="lg:col-span-2 bg-gray-950/90 rounded-3xl overflow-hidden border border-cyan-900/40 shadow-2xl">
       <div class="p-6 border-b border-gray-800">
         <h2 class="text-2xl font-bold">Live Global Trade Flow</h2>
-        <p class="text-cyan-300 text-sm">Green arcs = buys Red arcs = sells</p>
+        <p class="text-cyan-300 text-sm">Green arcs = buys Red arcs = sells · Works on Brave Shields Up</p>
       </div>
-      <div id="mapViz"></div>
+      <div id="mapViz" class="relative">
+        <div id="map"></div>
+      </div>
     </div>
 
-    <!-- Right column (unchanged) -->
     <div class="space-y-6">
       <div class="grid grid-cols-2 gap-6">
         <div class="bg-gray-900/90 rounded-2xl p-6 border border-gray-800">
@@ -41,10 +41,12 @@
           <div id="volume" class="text-3xl font-bold">$?.??B</div>
         </div>
       </div>
+
       <div class="bg-gray-900/90 rounded-2xl p-6 border border-gray-800">
         <h3 class="font-bold mb-3">Live Trades</h3>
         <div id="trades" class="text-sm space-y-1 max-h-64 overflow-y-auto"></div>
       </div>
+
       <div class="bg-gray-900/90 rounded-2xl p-6 text-center border border-gray-800">
         <div class="text-gray-400 text-sm">Order-Book Depth (top 10)</div>
         <div class="text-3xl font-bold mt-3">
@@ -62,57 +64,54 @@
   </div>
 </div>
 
+<script src="https://unpkg.com/httpx-map@1.2.4"></script>
 <script>
-// Super lightweight 2D map that works everywhere
-const map = new HttpxMap('mapViz', {
-  style: 'dark',
-  zoom: 1.7,
-  center: [0, 20]
-});
+const map = new HttpxMap('map', {style:'dark', zoom:1.8, center:[15,0], animate:true});
 
-// Flying arcs (green = buy, red = sell)
-const cities = [[40.7,-74],[51.5,-0.1],[35.7,139.7],[1.35,103.8],[-33.9,151.2],[55.7,37.6],[25.2,55.7]];
-function shootArc() {
-  const [lat1, lng1] = cities[Math.floor(Math.random()*cities.length)];
-  const buy = Math.random() > 0.45;
+const cities = [[40.7,-74],[51.5,-0.1],[35.7,139.7],[1.35,103.8],[-33.9,151.2],[55.7,37.6],[25.2,55.7],[23.1,113.3]];
+function shoot(){
+  const [lat,lng] = cities[Math.floor(Math.random()*cities.length)];
+  const buy = Math.random()>0.45;
   map.addArc({
-    start: [lng1, lat1],
-    end: [Math.random()*360-180, Math.random()*180-90],
+    start:[lng,lat],
+    end:[Math.random()*360-180, Math.random()*160-80],
     color: buy ? '#10b981' : '#ef4444',
-    width: buy ? 3 : 2,
-    dash: buy ? [] : [8,8],
-    lifetime: 4500
+    width: buy?3:2,
+    lifetime: 5000
   });
 }
 
-// Rest of your dashboard (price, trades, clock, etc.) — unchanged and working
-let price = 2.38;
+// Price
+let price = 2.toFixed(4);
 async function updatePrice(){
   try{
     const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true');
     const j = await r.json();
     price = j.ripple.usd;
     document.getElementById('price').textContent = '$'+price.toFixed(4);
-    document.getElementById('change').textContent = (j.ripple.usd_24h_change>0?'+' :'')+j.ripple.usd_24h_change.toFixed(2)+'%';
-    document.getElementById('change').className = j.ripple.usd_24h_change>0?'text-green-400 mt-1':'text-red-400 mt-1';
-    document.getElementById('volume').textContent = '$'+(j.ripple.usd_24h_vol/1e9).toFixed(2)+'B';
+    const ch = j.ripple.usd_24h_change;
+    const el = document.getElementById('change');
+    el.textContent = (ch>0?'+' :'')+ch.toFixed(2)+'%';
+    el.className = ch>0?'text-green-400 mt-1':'text-red-400 mt-1';
+    document.getElementById('volume').textContent = '$'+(j.ripple.usd_24hr_vol/1e9).toFixed(2)+'B';
   }catch(e){}
 }
-setInterval(updatePrice,8000); updatePrice();
+setInterval(updatePrice,9000); updatePrice();
 
-function addTrade(){
-  const buy = Math.random() > 0.5;
-  const qty = (Math.random()*90+10).toFixed(1);
-  price += (Math.random()-0.5)*0.003;
-  const el = document.createElement('div');
-  el.className = buy ? 'text-green-400' : 'text-red-400';
-  el.textContent = `${new Date().toLocaleTimeString().slice(0,8)} ${qty} XRP $${price.toFixed(4)}`;
-  document.getElementById('trades').prepend(el);
-  if(document.getElementById('trades').children.length > 12) document.getElementById('trades').lastChild.remove();
-  shootArc();
+// Trades
+function trade(){
+  const buy = Math.random()>0.5;
+  const qty = (Math.random()*100+15).toFixed(1);
+  price += (Math.random()-0.5)*0.004;
+  const div = document.createElement('div');
+  div.className = buy ? 'text-green-400' : 'text-red-400';
+  div.textContent = `${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})}  ${qty} XRP  $${price.toFixed(4)}`;
+  document.getElementById('trades').prepend(div);
+  if(document.getElementById('trades').children.length>15) document.getElementById('trades').lastChild.remove();
+  shoot();
 }
 
-// ETFs + clock + depth (same as before)
+// ETFs + clock + depth
 ['Canary XRPC $243M','Bitwise XRPT $135M','Franklin EZRP $63M','Grayscale GXRP $67M','21Shares AXRP $5M'].forEach(t=>{
   const d=document.createElement('div');
   d.className='bg-gray-900/90 rounded-2xl p-6 text-center border border-gray-800';
@@ -120,21 +119,20 @@ function addTrade(){
   document.getElementById('etfContainer').appendChild(d);
 });
 
-function tick(){
-  const d = new Date().toLocaleString("en-US",{timeZone:"America/New_York"});
-  const d = new Date(et);
+function clock(){
+  const d = new Date(new Date().toLocaleString("en-US",{timeZone:"America/New_York"}));
   const live = d.getDay()>=1&&d.getDay()<=5 && d.getHours()>=9&&d.getHours()<16;
   document.getElementById('clock').textContent = d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})+' ET';
   document.getElementById('status').textContent = live?'LIVE':'CLOSED';
   document.getElementById('status').className = live?'text-6xl font-bold text-green-400':'text-6xl font-bold text-red-400';
 }
-setInterval(tick,1000); tick();
+setInterval(clock,1000); clock();
 
-setInterval(()=>{document.getElementById('bid').textContent=(7+Math.random()*4).toFixed(1)+'k';document.getElementById('ask').textContent=(5+Math.random()*4).toFixed(1)+'k';},7000);
+setInterval(()=>{document.getElementById('bid').textContent=(6+Math.random()*5).toFixed(1)+'k';document.getElementById('ask').textContent=(4+Math.random()*5).toFixed(1)+'k';},7000);
 
-setTimeout(addTrade,1500);
-setInterval(addTrade,3200);
-setInterval(shootArc,2000);
+setTimeout(trade,1500);
+setInterval(trade,3000);
+setInterval(shoot,1800);
 </script>
 </body>
 </html>
