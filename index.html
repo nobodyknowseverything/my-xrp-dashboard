@@ -7,7 +7,13 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body { margin:0; background:#000; color:#fff; font-family:system-ui; }
-  #map { height:560px; background:url('https://raw.githubusercontent.com/nobodyknowseverything/my-xrp-dashboard/main/world-map-dark.jpg') center/cover; position:relative; overflow:hidden; }
+  #map { 
+    height:560px; 
+    background: url('https://raw.githubusercontent.com/nobodyknowseverything/my-xrp-dashboard/main/world-map-dark.jpg') center/cover no-repeat;
+    position:relative; 
+    overflow:hidden; 
+    border-radius: 0 0 1.5rem 1.5rem;
+  }
   @media(max-width:768px){ #map{height:380px} }
   canvas { position:absolute; inset:0; pointer-events:none; }
 </style>
@@ -58,7 +64,7 @@
 
   <div class="text-center py-12 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-3xl border border-cyan-700">
     <div id="status" class="text-6xl font-bold text-green-400">LIVE</div>
-    <div id="clock" class="text-7xl font-mono my-6">00:00:00 ET</div>
+    <div id="clock" class="text-7xl font-mono my-6">00:00 ET</div>
   </div>
 </div>
 
@@ -94,41 +100,39 @@ function shootArc() {
   arcs.push({
     x1, y1, x2, y2,
     color: buy ? '#10b981' : '#ef4444',
-    progress: 0,
-    lifetime: 0
+    progress: 0
   });
 }
 
-// Animation loop
 function animate() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
   arcs = arcs.filter(arc => {
     arc.progress += 0.018;
-    arc.lifetime += 0.018;
-
     if (arc.progress > 1) return false;
 
     const t = arc.progress;
     const x = arc.x1 + (arc.x2 - arc.x1) * t;
     const y = arc.y1 + (arc.y2 - arc.y1) * t - 180 * Math.sin(t * Math.PI);
 
-    // Draw glowing arc trail
-    ctx.strokeStyle = arc.color + 'dd';
+    // Trail
+    ctx.strokeStyle = arc.color + 'cc';
     ctx.lineWidth = 4;
+    ctx.setLineDash([8, 8]);
     ctx.beginPath();
-    for (let i = 0; i <= t*50; i++) {
-      const p = i/50;
+    for (let i = 0; i <= t*40; i++) {
+      const p = i/40;
       const px = arc.x1 + (arc.x2 - arc.x1) * p;
       const py = arc.y1 + (arc.y2 - arc.y1) * p - 180 * Math.sin(p * Math.PI);
       i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
     }
     ctx.stroke();
+    ctx.setLineDash([]);
 
-    // Draw glowing head
+    // Head
     ctx.fillStyle = arc.color;
     ctx.beginPath();
-    ctx.arc(x, y, 8, 0, Math.PI*2);
+    ctx.arc(x, y, 9, 0, Math.PI*2);
     ctx.fill();
 
     return true;
@@ -138,7 +142,7 @@ function animate() {
 }
 animate();
 
-// Price
+// Price update
 let price = 2.38;
 async function updatePrice(){
   try{
@@ -147,7 +151,7 @@ async function updatePrice(){
     price = j.ripple.usd;
     document.getElementById('price').textContent = '$'+price.toFixed(4);
     const ch = j.ripple.usd_24h_change || 0;
-    document.getElementById('change').textContent = (ch>0?'+' : '')+ch.toFixed(2)+'%';
+    document.getElementById('change').textContent = (ch>0?'+':'')+ch.toFixed(2)+'%';
     document.getElementById('change').className = ch>0?'text-green-400 text-xl':'text-red-400 text-xl';
     const vol = (j.ripple.usd_24hr_vol || 0)/1e9;
     document.getElementById('volume').textContent = '$'+vol.toFixed(2)+'B';
@@ -155,19 +159,19 @@ async function updatePrice(){
 }
 setInterval(updatePrice,8000); updatePrice();
 
-// Trades + trigger arc
+// Live trades
 function addTrade(){
   const buy = Math.random()>0.5;
   const qty = (20+Math.random()*130).toFixed(1);
   const el = document.createElement('div');
   el.className = buy ? 'text-green-400' : 'text-red-400';
-  el.innerHTML = `${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})} ${qty} XRP $${(price+ (Math.random()-0.5)*0.01).toFixed(4)}`;
+  el.innerHTML = `${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})} ${qty} XRP $${(price+(Math.random()-0.5)*0.01).toFixed(4)}`;
   document.getElementById('trades').prepend(el);
   if(document.getElementById('trades').children.length>15) document.getElementById('trades').lastChild.remove();
   shootArc();
 }
 
-// ETFs
+// ETFs + Clock (unchanged)
 ['Canary XRPC $243M','Bitwise XRPT $135M','Franklin EZRP $63M','Grayscale GXRP $67M','21Shares AXRP $5M'].forEach(t=>{
   const d=document.createElement('div');
   d.className='bg-gray-900/90 rounded-2xl p-6 text-center border border-gray-800';
@@ -175,7 +179,6 @@ function addTrade(){
   document.getElementById('etfContainer').appendChild(d);
 });
 
-// Clock
 setInterval(() => {
   const d = new Date(new Date().toLocaleString("en-US",{timeZone:"America/New_York"}));
   const live = d.getDay()>=1 && d.getDay()<=5 && d.getHours()>=9 && d.getHours()<16;
@@ -184,10 +187,11 @@ setInterval(() => {
   document.getElementById('status').className = live?'text-6xl font-bold text-green-400':'text-6xl font-bold text-red-400';
 },1000);
 
-// Start
+// Start arcs & trades
 setInterval(shootArc, 1600);
 setInterval(addTrade, 3000);
 setTimeout(addTrade, 800);
 </script>
+</body>
 </body>
 </html>
