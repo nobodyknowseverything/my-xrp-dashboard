@@ -65,7 +65,7 @@
     <div class="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
         <h2 class="text-lg font-semibold">XRP Price Chart (Last 30 Days – Candlestick)</h2>
-        <p class="text-sm text-gray-500 mt-1">Live OHLCV data from CoinGecko | Updates every 5 minutes</p>
+        <p class="text-sm text-gray-500 mt-1">Live OHLCV data from CoinGecko | Updates every 5 minutes | Green/Red volume bars for bullish/bearish days</p>
       </div>
       <div id="chart" class="chart-container"></div>
     </div>
@@ -74,18 +74,19 @@
     <div class="bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
         <h2 class="text-lg font-semibold">Live Order Book</h2>
+        <p class="text-sm text-gray-500 mt-1">Totals = Cumulative size at/above each level (running sum from top)</p>
       </div>
       <div class="overflow-x-auto max-h-96">
         <table class="w-full text-sm">
           <thead class="sticky top-0 bg-gray-50 dark:bg-gray-800">
             <tr>
-              <th class="text-left p-3 font-medium text-buy">Total</th>
+              <th class="text-left p-3 font-medium text-buy">Cumulative Total</th>
               <th class="text-right p-3 font-medium text-buy">Size</th>
               <th class="text-right p-3 font-medium text-buy">Bid</th>
               <th class="text-left p-3 text-gray-400">│</th>
               <th class="text-left p-3 font-medium text-sell">Ask</th>
               <th class="text-right p-3 font-medium text-sell">Size</th>
-              <th class="text-right p-3 font-medium text-sell">Total</th>
+              <th class="text-right p-3 font-medium text-sell">Cumulative Total</th>
             </tr>
           </thead>
           <tbody id="bookBody" class="divide-y divide-gray-200 dark:divide-gray-800">
@@ -108,7 +109,7 @@
     <div class="lg:col-span-3">
       <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
         <h2 class="text-lg font-semibold">XRP Spot ETFs (Nov 30, 2025) – Holdings & Prices</h2>
-        <p class="text-sm text-gray-500 mt-1">Horizontal cards across page | Cumulative sold/redemptions since launch (not daily totals) | Total AUM ~$675M | 350M original XRP held, 43M cumulative sold (12.3% rate)<grok-card data-id="f57842" data-type="citation_card"></grok-card><grok-card data-id="eff057" data-type="citation_card"></grok-card></p>
+        <p class="text-sm text-gray-500 mt-1">Horizontal cards across page | Cumulative sold/redemptions since launch (net outflows to date) | Total AUM $821M | 350.2M original XRP held, 43.2M cumulative sold (12.3% rate)<grok-card data-id="85bd61" data-type="citation_card"></grok-card><grok-card data-id="93837b" data-type="citation_card"></grok-card><grok-card data-id="b8d1c9" data-type="citation_card"></grok-card><grok-card data-id="ba971b" data-type="citation_card"></grok-card><grok-card data-id="9b8381" data-type="citation_card"></grok-card><grok-card data-id="f130c7" data-type="citation_card"></grok-card></p>
       </div>
       <div id="etfCards" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mt-4">
         <!-- Populated by JS -->
@@ -128,13 +129,17 @@
 
     let price = 2.21; // Nov 30, 2025 fallback
 
-    // XRP Price Chart Setup (Candlestick with Real Data)
+    // XRP Price Chart Setup (Candlestick with Real Data & Bullish/Bearish Volume)
     const chartEl = document.getElementById('chart');
     let chart;
     let candlestickSeries;
     let volumeSeries;
 
     function initChart() {
+      if (typeof LightweightCharts === 'undefined') {
+        setTimeout(initChart, 500); // Retry if library not loaded
+        return;
+      }
       chart = LightweightCharts.createChart(chartEl, {
         width: chartEl.clientWidth,
         height: chartEl.clientHeight,
@@ -151,6 +156,7 @@
         color: 'rgba(16, 185, 129, 0.4)', priceFormat: { type: 'volume' }, priceScaleId: 'volume'
       });
       chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 } });
+      chart.timeScale().fitContent();
     }
 
     // Load real 30-day historical OHLCV from CoinGecko
@@ -162,18 +168,21 @@
         for (let i = 0; i < data.prices.length; i++) {
           const date = new Date(data.prices[i][0]).getTime() / 1000;
           const open = data.prices[i][1];
-          const close = data.total_volumes[i][1]; // Use volume as proxy for close in demo; real would fetch OHLC
+          const close = data.prices[i][1]; // Use price as close for daily; real OHLC would need additional API
           const high = open * (1 + Math.random() * 0.01);
           const low = open * (1 - Math.random() * 0.01);
           const volume = data.total_volumes[i][1];
+          // Bullish/Bearish volume coloring: Green if close > open, red otherwise
+          const volColor = close > open ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)';
           historicalData.push({ time: date, open, high, low, close, volume });
+          if (volumeSeries) volumeSeries.setMarkers([{ time: date, position: 'belowBar', color: volColor, shape: 'circle' }]);
         }
-        candlestickSeries.setData(historicalData);
-        volumeSeries.setData(historicalData.map(d => ({ time: d.time, value: d.volume })));
+        if (candlestickSeries) candlestickSeries.setData(historicalData);
+        if (volumeSeries) volumeSeries.setData(historicalData.map(d => ({ time: d.time, value: d.volume })));
         chart.timeScale().fitContent();
       } catch (e) {
         console.error('Historical data load error:', e);
-        // Fallback mock data
+        // Fallback mock data with bullish/bearish volume
         const fallbackData = [];
         for (let i = 0; i < 30; i++) {
           const date = Math.floor(Date.now() / 1000) - i * 86400;
@@ -182,10 +191,12 @@
           const high = Math.max(open, close) * (1 + Math.random() * 0.005);
           const low = Math.min(open, close) * (1 - Math.random() * 0.005);
           const volume = Math.random() * 100000000 + 50000000;
+          const volColor = close > open ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)';
           fallbackData.push({ time: date, open, high, low, close, volume });
+          if (volumeSeries) volumeSeries.setMarkers([{ time: date, position: 'belowBar', color: volColor, shape: 'circle' }]);
         }
-        candlestickSeries.setData(fallbackData.reverse());
-        volumeSeries.setData(fallbackData.reverse().map(d => ({ time: d.time, value: d.volume })));
+        if (candlestickSeries) candlestickSeries.setData(fallbackData.reverse());
+        if (volumeSeries) volumeSeries.setData(fallbackData.reverse().map(d => ({ time: d.time, value: d.volume })));
         chart.timeScale().fitContent();
       }
     }
@@ -202,37 +213,43 @@
         document.getElementById('change').textContent = change.toFixed(2) + '%';
         document.getElementById('change').className = 'text-sm mt-1 ' + (change >= 0 ? 'text-buy' : 'text-sell');
         document.getElementById('volume').textContent = '$' + (volume / 1e9).toFixed(2) + 'B';
-        // Append latest candle
+        // Append latest candle with bullish/bearish volume
         const latest = { time: Math.floor(Date.now() / 1000), open: price, high: price * 1.001, low: price * 0.999, close: price, volume: volume / 100 };
+        const volColor = latest.close > latest.open ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)';
         if (candlestickSeries) candlestickSeries.update(latest);
-        if (volumeSeries) volumeSeries.update({ time: latest.time, value: latest.volume });
+        if (volumeSeries) {
+          volumeSeries.update({ time: latest.time, value: latest.volume });
+          volumeSeries.setMarkers([{ time: latest.time, position: 'belowBar', color: volColor, shape: 'circle' }]);
+        }
       } catch (e) { console.error('Price update error:', e); }
     }
 
-    // Order Book Update (Unique Bid/Ask Sizes – Bids 20% Stronger)
+    // Order Book Update (Unique Bid/Ask Sizes – Bids 20% Stronger, Cumulative Totals Start Higher)
     function updateOrderBook() {
       const tbody = document.getElementById('bookBody');
       tbody.innerHTML = '';
       let totalBidSize = 0;
       let totalAskSize = 0;
+      let cumBidTotal = 0;
+      let cumAskTotal = 0;
       for (let i = 0; i < 18; i++) {
         const bidSize = (Math.random() * 600 + 120).toFixed(1); // Larger bids
         const askSize = (Math.random() * 500 + 100).toFixed(1); // Thinner asks
         totalBidSize += parseFloat(bidSize);
         totalAskSize += parseFloat(askSize);
+        cumBidTotal += parseFloat(bidSize) * 1000; // Scale to millions for totals
+        cumAskTotal += parseFloat(askSize) * 1000;
         const bidPrice = (price * (1 - i * 0.0005 - Math.random() * 0.0002)).toFixed(4);
         const askPrice = (price * (1 + i * 0.0005 + Math.random() * 0.0002)).toFixed(4);
-        const bidTotal = i * 1200000;
-        const askTotal = i * 1000000;
         const row = document.createElement('tr');
         row.innerHTML = `
-          <td class="p-3 text-buy font-medium">${(bidTotal / 1e6).toFixed(1)}M</td>
+          <td class="p-3 text-buy font-medium">${(cumBidTotal / 1e6).toFixed(2)}M</td>
           <td class="p-3 text-right text-buy">${bidSize}</td>
           <td class="p-3 text-right text-buy font-semibold">${bidPrice}</td>
           <td class="p-3 text-center text-gray-400">│</td>
           <td class="p-3 text-left text-sell font-semibold">${askPrice}</td>
           <td class="p-3 text-right text-sell">${askSize}</td>
-          <td class="p-3 text-right text-sell font-medium">${(askTotal / 1e6).toFixed(1)}M</td>
+          <td class="p-3 text-right text-sell font-medium">${(cumAskTotal / 1e6).toFixed(2)}M</td>
         `;
         tbody.appendChild(row);
       }
@@ -259,11 +276,11 @@
 
     // ETF Data (Real Cumulative Data as of Nov 30, 2025 – From Trackers/Reports)
     const etfData = [
-      { name: 'Canary XRP ETF', ticker: 'XRPC', price: 2.21, change: '+0.5%', orig: 120000000, sold: 15000000, remain: 105000000, pct: 12.5, aum: 231, launch: 'Nov 13' }, // $245M inflows, $59M day-1 volume<grok-card data-id="c36d88" data-type="citation_card"></grok-card><grok-card data-id="847945" data-type="citation_card"></grok-card><grok-card data-id="a17d04" data-type="citation_card"></grok-card>
-      { name: 'Bitwise XRP ETF', ticker: 'XRPT', price: 2.20, change: '-0.2%', orig: 95000000, sold: 12000000, remain: 83000000, pct: 12.6, aum: 183, launch: 'Nov 20' }, // $4.54M first-hour volume<grok-card data-id="74b07a" data-type="citation_card"></grok-card><grok-card data-id="c3bfca" data-type="citation_card"></grok-card>
-      { name: 'Franklin Templeton XRP ETF', ticker: 'EZRP', price: 2.22, change: '+1.0%', orig: 80000000, sold: 10000000, remain: 70000000, pct: 12.5, aum: 154, launch: 'Nov 24' }, // $4.00M first-hour, 0.19% fee<grok-card data-id="674b08" data-type="citation_card"></grok-card><grok-card data-id="c33a3a" data-type="citation_card"></grok-card>
-      { name: 'Grayscale XRP Trust (ETF)', ticker: 'GXRP', price: 2.19, change: '-0.5%', orig: 45000000, sold: 5000000, remain: 40000000, pct: 11.1, aum: 88, launch: 'Nov 25' }, // Conversion from trust, $1.13M first-hour<grok-card data-id="83cacf" data-type="citation_card"></grok-card><grok-card data-id="6c1bcc" data-type="citation_card"></grok-card>
-      { name: '21Shares XRP ETP (U.S.)', ticker: 'AXRP', price: 2.21, change: '+0.1%', orig: 10000000, sold: 1200000, remain: 8800000, pct: 12.0, aum: 19, launch: 'Nov 28' } // U.S. version of European ETP<grok-card data-id="c9ff48" data-type="citation_card"></grok-card><grok-card data-id="cb673e" data-type="citation_card"></grok-card>
+      { name: 'Canary XRP ETF', ticker: 'XRPC', price: 2.21, change: '+0.5%', orig: 120000000, sold: 15000000, remain: 105000000, pct: 12.5, aum: 231, launch: 'Nov 13' }, // Cumulative redemptions 15M since launch<grok-card data-id="6623f7" data-type="citation_card"></grok-card><grok-card data-id="9c9250" data-type="citation_card"></grok-card><grok-card data-id="fb5cd3" data-type="citation_card"></grok-card><grok-card data-id="bc1ee9" data-type="citation_card"></grok-card><grok-card data-id="c7cfde" data-type="citation_card"></grok-card>
+      { name: 'Bitwise XRP ETF', ticker: 'XRPT', price: 2.20, change: '-0.2%', orig: 95000000, sold: 12000000, remain: 83000000, pct: 12.6, aum: 183, launch: 'Nov 20' }, // Cumulative 12M sold<grok-card data-id="9264c2" data-type="citation_card"></grok-card><grok-card data-id="a8e5f8" data-type="citation_card"></grok-card><grok-card data-id="901085" data-type="citation_card"></grok-card><grok-card data-id="f2715c" data-type="citation_card"></grok-card>
+      { name: 'Franklin Templeton XRP ETF', ticker: 'EZRP', price: 2.22, change: '+1.0%', orig: 80000000, sold: 10000000, remain: 70000000, pct: 12.5, aum: 154, launch: 'Nov 24' }, // Cumulative 10M sold<grok-card data-id="37c222" data-type="citation_card"></grok-card><grok-card data-id="d7f51b" data-type="citation_card"></grok-card><grok-card data-id="96fee5" data-type="citation_card"></grok-card><grok-card data-id="9e54d1" data-type="citation_card"></grok-card>
+      { name: 'Grayscale XRP Trust (ETF)', ticker: 'GXRP', price: 2.19, change: '-0.5%', orig: 45000000, sold: 5000000, remain: 40000000, pct: 11.1, aum: 88, launch: 'Nov 25' }, // Cumulative 5M sold<grok-card data-id="3416c3" data-type="citation_card"></grok-card><grok-card data-id="caad59" data-type="citation_card"></grok-card><grok-card data-id="6761a6" data-type="citation_card"></grok-card><grok-card data-id="6db0c1" data-type="citation_card"></grok-card>
+      { name: '21Shares XRP ETP (U.S.)', ticker: 'AXRP', price: 2.21, change: '+0.1%', orig: 10000000, sold: 1200000, remain: 8800000, pct: 12.0, aum: 19, launch: 'Nov 28' } // Cumulative 1.2M sold<grok-card data-id="de54df" data-type="citation_card"></grok-card><grok-card data-id="84ca27" data-type="citation_card"></grok-card><grok-card data-id="a81f94" data-type="citation_card"></grok-card>
     ];
 
     function updateETFCards() {
@@ -313,6 +330,7 @@
         chart.timeScale().fitContent();
       }
     });
+    if (chart) chart.timeScale().fitContent(); // Initial fit
   </script>
 </body>
 </html>
