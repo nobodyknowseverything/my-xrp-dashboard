@@ -65,7 +65,7 @@
     <div class="lg:col-span-2 bg-white dark:bg-gray-900 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-800 overflow-hidden">
       <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
         <h2 class="text-lg font-semibold">XRP Price Chart (1H TF – Last 7 Days, Last Candle Live)</h2>
-        <p class="text-sm text-gray-500 mt-1">Live OHLCV from CoinGecko | Updates every 5 minutes | Green/Red volume bars</p>
+        <p class="text-sm text-gray-500 mt-1">Live OHLCV from CoinGecko | Updates every 5 seconds | Green/Red volume bars for bullish/bearish hours</p>
       </div>
       <div id="chart" class="chart-container"></div>
     </div>
@@ -182,7 +182,7 @@
         if (chart) chart.timeScale().fitContent();
       } catch (e) {
         console.error('Historical data load error:', e);
-        // Fallback mock 1H data for 7 days
+        // Fallback mock 1H data for 7 days (168 candles)
         const fallbackData = [];
         for (let i = 0; i < 168; i++) { // 7 days * 24 hours
           const timestamp = Math.floor(Date.now() / 1000) - i * 3600;
@@ -202,7 +202,7 @@
       }
     }
 
-    // Update current price and append to chart (live last candle)
+    // Update current price and append to chart (live last candle every 5s)
     async function updatePrice() {
       try {
         const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ripple&vs_currencies=usd&include_24hr_change=true&include_24hr_vol=true');
@@ -214,7 +214,7 @@
         document.getElementById('change').textContent = change.toFixed(2) + '%';
         document.getElementById('change').className = 'text-sm mt-1 ' + (change >= 0 ? 'text-buy' : 'text-sell');
         document.getElementById('volume').textContent = '$' + (volume / 1e9).toFixed(2) + 'B';
-        // Append/update last candle
+        // Append/update last candle with live data (every 5s for no gaps)
         const latestTime = Math.floor(Date.now() / 1000);
         const latest = { time: latestTime, open: price, high: price * 1.001, low: price * 0.999, close: price, volume: volume / 100 };
         if (candlestickSeries) candlestickSeries.update(latest);
@@ -316,7 +316,7 @@
     updateETFCards();
     addTrade();
 
-    setInterval(updatePrice, 300000); // 5 minutes for 1H TF
+    setInterval(updatePrice, 5000); // Every 5 seconds for live last candle (no gaps)
     setInterval(loadPriceData, 300000); // Refresh full 7 days every 5 minutes
     setInterval(updateOrderBook, 15000);
     setInterval(addTrade, 3000);
