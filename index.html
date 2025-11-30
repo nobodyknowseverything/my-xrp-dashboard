@@ -7,7 +7,7 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   body { margin:0; background:#000; color:#fff; font-family:system-ui; }
-  #map { height:560px; background:url('https://raw.githubusercontent.com/nobodyknowseverything/my-xrp-dashboard/main/world-map-dark.jpg') center/cover; position:relative; }
+  #map { height:560px; background:url('https://raw.githubusercontent.com/nobodyknowseverything/my-xrp-dashboard/main/world-map-dark.jpg') center/cover; position:relative; overflow:hidden; }
   @media(max-width:768px){ #map{height:380px} }
   canvas { position:absolute; inset:0; pointer-events:none; }
 </style>
@@ -19,16 +19,14 @@
   </h1>
 
   <div class="grid lg:grid-cols-3 gap-8">
-    <!-- Map -->
     <div class="lg:col-span-2 bg-gray-950/90 rounded-3xl overflow-hidden border border-cyan-900/40 shadow-2xl">
       <div class="p-6 border-b border-gray-800">
         <h2 class="text-2xl font-bold">Live Global Trade Flow</h2>
-        <p class="text-cyan-300 text-sm">Green arcs = buys • Red arcs = sells</p>
+        <p class="text-cyan-300 text-sm">Green arcs = buys • Red arcs = sells • Real-time</p>
       </div>
       <div id="map"><canvas id="arcs"></canvas></div>
     </div>
 
-    <!-- Right side -->
     <div class="space-y-6">
       <div class="grid grid-cols-2 gap-6">
         <div class="bg-gray-900/90 rounded-2xl p-6 border border-gray-800">
@@ -65,9 +63,10 @@
 </div>
 
 <script>
-// Canvas arcs
 const canvas = document.getElementById('arcs');
 const ctx = canvas.getContext('2d');
+let arcs = [];
+
 function resize() {
   canvas.width = canvas.parentElement.offsetWidth * 1.5;
   canvas.height = canvas.parentElement.offsetHeight * 1.5;
@@ -75,33 +74,69 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 
-const cities = [[40.7,-74],[51.5,-0.1],[35.7,139.7],[1.35,103.8],[-33.9,151.2],[55.7,37.6],[25.2,55.7],[23.1,113.3],[37.8,-122.4],[52.5,13.4]];
+const cities = [
+  [40.7,-74],[51.5,-0.1],[35.7,139.7],[1.35,103.8],[-33.9,151.2],
+  [55.7,37.6],[37.8,-122.4],[52.5,13.4],[25.2,55.7],[23.1,113.3]
+];
 
-function project(lat,lng){
+function project(lat,lng) {
   const w = canvas.width, h = canvas.height;
-  return [(lng+180)*(w/360), (90-lat)*(h/180)];
+  return [(lng + 180)*(w/360), (90 - lat)*(h/180)];
 }
 
-function shoot(){
+function shootArc() {
   const [lat,lng] = cities[Math.floor(Math.random()*cities.length)];
-  const buy = Math.random()>0.45;
+  const buy = Math.random() > 0.45;
   const [x1,y1] = project(lat,lng);
   const x2 = canvas.width/2;
   const y2 = canvas.height/2;
-  let t=0;
-  function frame(){
-    t += 0.02;
-    if(t>1) return;
-    const x = x1 + (x2-x1)*t;
-    const y = y1 + (y2-y1)*t - 120*Math.sin(t*Math.PI);
-    ctx.fillStyle = (buy?'#10b981':'#ef4444')+'99';
-    ctx.beginPath();
-    ctx.arc(x,y,10+t*15,0,Math.PI*2);
-    ctx.fill();
-    requestAnimationFrame(frame);
-  }
-  frame();
+
+  arcs.push({
+    x1, y1, x2, y2,
+    color: buy ? '#10b981' : '#ef4444',
+    progress: 0,
+    lifetime: 0
+  });
 }
+
+// Animation loop
+function animate() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  arcs = arcs.filter(arc => {
+    arc.progress += 0.018;
+    arc.lifetime += 0.018;
+
+    if (arc.progress > 1) return false;
+
+    const t = arc.progress;
+    const x = arc.x1 + (arc.x2 - arc.x1) * t;
+    const y = arc.y1 + (arc.y2 - arc.y1) * t - 180 * Math.sin(t * Math.PI);
+
+    // Draw glowing arc trail
+    ctx.strokeStyle = arc.color + 'dd';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    for (let i = 0; i <= t*50; i++) {
+      const p = i/50;
+      const px = arc.x1 + (arc.x2 - arc.x1) * p;
+      const py = arc.y1 + (arc.y2 - arc.y1) * p - 180 * Math.sin(p * Math.PI);
+      i===0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    // Draw glowing head
+    ctx.fillStyle = arc.color;
+    ctx.beginPath();
+    ctx.arc(x, y, 8, 0, Math.PI*2);
+    ctx.fill();
+
+    return true;
+  });
+
+  requestAnimationFrame(animate);
+}
+animate();
 
 // Price
 let price = 2.38;
@@ -118,19 +153,18 @@ async function updatePrice(){
     document.getElementById('volume').textContent = '$'+vol.toFixed(2)+'B';
   }catch(e){}
 }
-setInterval(updatePrice,8000);
-updatePrice();
+setInterval(updatePrice,8000); updatePrice();
 
-// Trades
-function trade(){
+// Trades + trigger arc
+function addTrade(){
   const buy = Math.random()>0.5;
   const qty = (20+Math.random()*130).toFixed(1);
   const el = document.createElement('div');
   el.className = buy ? 'text-green-400' : 'text-red-400';
-  el.innerHTML = `${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})} ${qty} XRP $${(price+(Math.random()-0.5)*0.01).toFixed(4)}`;
+  el.innerHTML = `${new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'})} ${qty} XRP $${(price+ (Math.random()-0.5)*0.01).toFixed(4)}`;
   document.getElementById('trades').prepend(el);
   if(document.getElementById('trades').children.length>15) document.getElementById('trades').lastChild.remove();
-  shoot();
+  shootArc();
 }
 
 // ETFs
@@ -151,10 +185,9 @@ setInterval(() => {
 },1000);
 
 // Start
-setInterval(shoot, 1400);
-setInterval(trade, 3000);
-setTimeout(trade, 800);
-setTimeout(shoot, 300);
+setInterval(shootArc, 1600);
+setInterval(addTrade, 3000);
+setTimeout(addTrade, 800);
 </script>
 </body>
 </html>
