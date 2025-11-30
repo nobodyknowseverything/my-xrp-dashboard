@@ -9,7 +9,7 @@
   body { margin:0; background:#000; color:#fff; font-family:system-ui; }
   #map { 
     height:560px; 
-    background: url('https://raw.githubusercontent.com/nobodyknowseverything/my-xrp-dashboard/main/world-map-dark.jpg') center/cover no-repeat;
+    background: url('https://images.unsplash.com/photo-1461749280684-dccba630e2f6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80') center/cover no-repeat;
     position:relative; 
     overflow:hidden; 
     border-radius: 0 0 1.5rem 1.5rem;
@@ -64,7 +64,7 @@
 
   <div class="text-center py-12 bg-gradient-to-r from-cyan-900/40 to-blue-900/40 rounded-3xl border border-cyan-700">
     <div id="status" class="text-6xl font-bold text-green-400">LIVE</div>
-    <div id="clock" class="text-7xl font-mono my-6">00:00 ET</div>
+    <div id="clock" class="text-7xl font-mono my-6">00:00:00 ET</div>
   </div>
 </div>
 
@@ -171,7 +171,7 @@ function addTrade(){
   shootArc();
 }
 
-// ETFs + Clock (unchanged)
+// ETFs
 ['Canary XRPC $243M','Bitwise XRPT $135M','Franklin EZRP $63M','Grayscale GXRP $67M','21Shares AXRP $5M'].forEach(t=>{
   const d=document.createElement('div');
   d.className='bg-gray-900/90 rounded-2xl p-6 text-center border border-gray-800';
@@ -179,6 +179,7 @@ function addTrade(){
   document.getElementById('etfContainer').appendChild(d);
 });
 
+// Clock
 setInterval(() => {
   const d = new Date(new Date().toLocaleString("en-US",{timeZone:"America/New_York"}));
   const live = d.getDay()>=1 && d.getDay()<=5 && d.getHours()>=9 && d.getHours()<16;
@@ -192,6 +193,5 @@ setInterval(shootArc, 1600);
 setInterval(addTrade, 3000);
 setTimeout(addTrade, 800);
 </script>
-</body>
 </body>
 </html>
