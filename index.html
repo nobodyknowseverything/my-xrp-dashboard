@@ -6,6 +6,7 @@
   <title>XRP Live • Created with Grok</title>
   <link rel="icon" href="data:,">
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     body{margin:0;background:#000;font-family:system-ui,sans-serif;overflow-x:hidden;color:#fff}
     .toggle-btn{background:#1f2937;border:none;padding:10px;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;transition:all .3s}
@@ -20,14 +21,20 @@
     .pred-body{padding:1.5rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden}
     .pred-current{font-size:2.2rem;font-weight:bold;color:#fff;margin-bottom:0.5rem}
     .pred-target{font-size:2.8rem;font-weight:bold;color:#00ffff;text-shadow:0 0 10px #00ffff60}
-    .pred-sentiment{font-size:1rem;margin:1rem 0;padding:0.4rem 1rem;border-radius:999px;display:inline-block}
+    .pred-sentiment{font-size:1.1rem;margin:1rem 0;padding:0.6rem 1rem;border-radius:999px;display:inline-block;font-weight:bold;transition:all .4s}
     .bullish{background:#059669;color:white}
-    .extreme-bullish{background:#10b981;color:white;font-weight:bold}
+    .extreme-bullish{background:#10b981;color:white}
+    .pump-detected{background:#ff6600 !important;color:white !important;animation:pulse 1s infinite}
+    .moonshot-mode{background:#ff0066 !important;color:white !important;box-shadow:0 0 20px #ff006680;animation:pulse 0.8s infinite}
+    @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
     .progress-bar{height:28px;background:#1e293b;border-radius:14px;overflow:hidden;margin:1rem 0;position:relative}
     .progress-fill{height:100%;background:linear-gradient(90deg,#00ffff,#10b981);transition:width 1.5s ease}
     .progress-text{position:absolute;top:0;left:0;width:100%;text-align:center;line-height:28px;font-weight:bold;color:#000;text-shadow:0 0 5px #fff;font-size:1.1rem}
+    .daily-progress{font-size:0.95rem;margin-top:0.5rem;font-weight:bold}
     .rocket{position:absolute;bottom:-80px;font-size:4.5rem;opacity:0;transition:opacity .3s, bottom 2.2s ease-in, left 2.2s ease-in;pointer-events:none;z-index:20}
     .rocket.active{opacity:1;bottom:120%}
+    .rocket.moonshot{font-size:8rem !important;animation:shake 0.5s infinite}
+    @keyframes shake{0%{transform:translate(0,0) rotate(0)}25%{transform:translate(5px, -10px) rotate(5deg)}50%{transform:translate(-5px, 5px) rotate(-5deg)}75%{transform:translate(10px, -5px) rotate(5deg)}100%{transform:translate(0,0) rotate(0)}}
     .rocket.left{left:10%}
     .rocket.right{left:auto;right:10%}
     .overlay{position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,0.95);z-index:50;display:flex;align-items:center;justify-content:center;opacity:0;visibility:hidden;transition:opacity .4s}
@@ -70,7 +77,7 @@
   </div>
 
   <div class="max-w-7xl mx-auto p-6 my-24 bg-gray-900/70 rounded-2xl border border-cyan-800">
-    <h2 class="text-2xl font-bold text-cyan-400 mb-6 text-center">XRP • Ultimate Bullish Prediction Tracker (December 14, 2025)</h2>
+    <h2 class="text-2xl font-bold text-cyan-400 mb-6 text-center">XRP • Ultimate Bullish Prediction Tracker (December 15, 2025)</h2>
   </div>
 
   <div class="border-b border-gray-800">
@@ -83,7 +90,7 @@
 
     <!-- Price Cards -->
     <div class="lg:col-span-3 grid grid-cols-2 md:grid-cols-6 gap-4">
-      <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">XRP Price</div><div id="price" class="text-2xl font-bold mt-1">$2.02</div><div id="change" class="text-sm mt-1 text-green-400">+0.09%</div></div>
+      <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">XRP Price</div><div id="price" class="text-2xl font-bold mt-1">$2.02</div><div id="change" class="text-sm mt-1 text-green-400">+0.00%</div></div>
       <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">24h Volume</div><div id="volume" class="text-xl font-semibold mt-1 converted" data-usd="1240000000">$1.24B</div></div>
       <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">Market Cap</div><div id="marketCap" class="text-xl font-semibold mt-1 converted" data-usd="122000000000">$122B</div></div>
       <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">Rank</div><div id="rank" class="text-2xl font-bold mt-1 text-cyan-300">#4</div></div>
@@ -100,7 +107,8 @@
           <div class="pred-current" id="shortCurrent">$2.02</div>
           <div class="pred-target" id="shortTarget">$15+</div>
           <div class="progress-bar"><div class="progress-fill" id="shortBar" style="width:13.5%"><div class="progress-text" id="shortPercent">13.5% to target</div></div></div>
-          <div class="pred-sentiment bullish">Bullish • ETF Supply Shock</div>
+          <div class="daily-progress" id="shortDaily">Daily: +0.00%</div>
+          <div class="pred-sentiment bullish" id="shortSentiment">Bullish • ETF Supply Shock</div>
           <p class="text-xs text-gray-400 mt-4 text-center px-4">Progress toward $15+ driven by ETF inflows & OTC depletion.</p>
         </div>
       </div>
@@ -111,7 +119,8 @@
           <div class="pred-current" id="medCurrent">$2.02</div>
           <div class="pred-target" id="medTarget">$100+</div>
           <div class="progress-bar"><div class="progress-fill" id="medBar" style="width:2%"><div class="progress-text" id="medPercent">2% to target</div></div></div>
-          <div class="pred-sentiment extreme-bullish">Extreme Bullish</div>
+          <div class="daily-progress" id="medDaily">Daily: +0.00%</div>
+          <div class="pred-sentiment extreme-bullish" id="medSentiment">Extreme Bullish</div>
           <p class="text-xs text-gray-400 mt-4 text-center px-4">Institutional surge & XRPL/DeFi growth (100x scenarios).</p>
         </div>
       </div>
@@ -122,7 +131,8 @@
           <div class="pred-current" id="longCurrent">$2.02</div>
           <div class="pred-target" id="longTarget">$5,000+</div>
           <div class="progress-bar"><div class="progress-fill" id="longBar" style="width:0.04%"><div class="progress-text" id="longPercent">0.04% to target</div></div></div>
-          <div class="pred-sentiment extreme-bullish">Hyper Bullish (Speculative)</div>
+          <div class="daily-progress" id="longDaily">Daily: +0.00%</div>
+          <div class="pred-sentiment extreme-bullish" id="longSentiment">Hyper Bullish (Speculative)</div>
           <p class="text-xs text-gray-400 mt-4 text-center px-4">Global bridge asset dominance (multi-thousand models).</p>
         </div>
       </div>
@@ -130,7 +140,7 @@
 
     <div class="lg:col-span-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-700 rounded-2xl p-5 text-center">
       <div class="text-4xl font-bold text-green-400 animate-pulse">XRP 24/7</div>
-      <div class="text-lg text-green-300">CRYPTO NEVER SLEEPS • TO THE MOON MOMENTUM</div>
+      <div class="text-lg text-green-300">CRYPTO NEVER SLEEPS • XRP MOON MOMENTUM</div>
     </div>
   </div>
 
@@ -143,11 +153,19 @@
   </div>
 
 <script>
+  // Sounds
+  const rocketSound = new Audio('https://cdn.pixabay.com/download/audio/2022-08-09/audio_1f77e98d3b.mp3?filename=rocket-67669.mp3');
+  const cheeringSound = new Audio('https://cdn.pixabay.com/download/audio/2022-03-15/audio_6b1d4e8d8e.mp3?filename=stadium-cheer-62026.mp3');
+
   let currentUSDPrice = 2.02;
   let currentVolumeUSD = 1240000000;
   let currentMarketCap = 122000000000;
   let currentRank = 4;
   let previousPrice = currentUSDPrice;
+  let dayStartPrice = null;
+  let lastDay = null;
+
+  window.moonshotTriggeredToday = false;
 
   const targets = {short: 15, med: 100, long: 5000};
 
@@ -164,28 +182,40 @@
     return n.toLocaleString();
   }
 
+  function triggerMoonshot() {
+    ['short', 'med', 'long'].forEach(term => {
+      const rocket = document.querySelector(`#${term}Card .rocket`);
+      rocket.classList.add('moonshot', 'active');
+      setTimeout(() => rocket.classList.remove('moonshot'), 6000);
+      const sentiment = document.getElementById(`${term}Sentiment`);
+      sentiment.textContent = 'MOONSHOT IN PROGRESS!! 🌕🚀🌕';
+      sentiment.classList.add('moonshot-mode');
+    });
+
+    confetti({particleCount: 300, spread: 120, origin: { y: 0.6 }});
+
+    rocketSound.currentTime = 0; rocketSound.play();
+    setTimeout(() => { cheeringSound.currentTime = 0; cheeringSound.play(); }, 1200);
+  }
+
   function updateAll() {
     const rate = rates[currentCurrency];
     const sym = symbols[currentCurrency];
     const displayPrice = (currentUSDPrice * rate).toFixed(4);
 
     document.getElementById('price').textContent = sym + displayPrice;
+
+    const shortTermChangePct = previousPrice ? ((currentUSDPrice - previousPrice) / previousPrice * 100) : 0;
+    const changeEl = document.getElementById('change');
+    changeEl.textContent = (shortTermChangePct > 0 ? '+' : '') + shortTermChangePct.toFixed(2) + '%';
+    changeEl.className = 'text-sm mt-1 ' + (shortTermChangePct > 0 ? 'text-green-400' : 'text-red-400');
+
     document.getElementById('volume').textContent = sym + bigNumber(currentVolumeUSD * rate);
     document.getElementById('marketCap').textContent = sym + bigNumber(currentMarketCap * rate);
 
-    const priceUp = currentUSDPrice > previousPrice + 0.0001;
-
-    ['short', 'med', 'long'].forEach(term => {
-      const targetUSD = targets[term];
-      const targetDisplay = (targetUSD * rate).toFixed(0);
-      const percent = Math.min(100, (currentUSDPrice / targetUSD) * 100);
-
-      document.getElementById(`${term}Current`).textContent = sym + displayPrice;
-      document.getElementById(`${term}Target`).textContent = sym + targetDisplay + (term !== 'long' ? '+' : '+');
-      document.getElementById(`${term}Bar`).style.width = percent + '%';
-      document.getElementById(`${term}Percent`).textContent = percent.toFixed(2) + '% to target';
-
-      if (priceUp) {
+    // Short-term rockets on meaningful pump
+    if (shortTermChangePct > 0.05) {
+      ['short', 'med', 'long'].forEach(term => {
         const rocket = document.querySelector(`#${term}Card .rocket`);
         const side = lastRocketSide[term] === 'left' ? 'right' : 'left';
         lastRocketSide[term] = side;
@@ -194,8 +224,61 @@
         rocket.classList.remove('active');
         void rocket.offsetWidth;
         rocket.classList.add('active');
+      });
+    }
+
+    // Daily reset
+    const todayUTC = new Date().getUTCDate();
+    if (lastDay === null || todayUTC !== lastDay) {
+      dayStartPrice = currentUSDPrice;
+      lastDay = todayUTC;
+      window.moonshotTriggeredToday = false;
+
+      // Reset sentiment text
+      ['short', 'med', 'long'].forEach(term => {
+        const sentiment = document.getElementById(`${term}Sentiment`);
+        sentiment.textContent = sentiment.originalText;
+        sentiment.classList.remove('pump-detected', 'moonshot-mode');
+      });
+    }
+
+    let maxDailyProgress = 0;
+
+    ['short', 'med', 'long'].forEach(term => {
+      const targetUSD = targets[term];
+      const overallPercent = Math.min(100, (currentUSDPrice / targetUSD) * 100);
+
+      document.getElementById(`${term}Current`).textContent = sym + displayPrice;
+      document.getElementById(`${term}Target`).textContent = sym + (targetUSD * rate).toFixed(0) + '+';
+      document.getElementById(`${term}Bar`).style.width = overallPercent + '%';
+      document.getElementById(`${term}Percent`).textContent = overallPercent.toFixed(2) + '% to target';
+
+      const dailyProgressPct = dayStartPrice ? ((currentUSDPrice - dayStartPrice) / (targetUSD - dayStartPrice)) * 100 : 0;
+
+      const dailyEl = document.getElementById(`${term}Daily`);
+      dailyEl.textContent = 'Daily: ' + (dailyProgressPct > 0 ? '+' : '') + dailyProgressPct.toFixed(2) + '%';
+      dailyEl.className = 'daily-progress ' + (dailyProgressPct > 0 ? 'text-green-400' : 'text-red-400');
+
+      if (dailyProgressPct > maxDailyProgress) maxDailyProgress = dailyProgressPct;
+
+      const sentiment = document.getElementById(`${term}Sentiment`);
+      if (dailyProgressPct >= 5) {
+        sentiment.textContent = 'MOONSHOT IN PROGRESS!! 🌕🚀🌕';
+        sentiment.classList.add('moonshot-mode');
+      } else if (dailyProgressPct >= 3) {
+        sentiment.textContent = 'PUMP DETECTED! 🚀';
+        sentiment.classList.add('pump-detected');
+      } else {
+        sentiment.textContent = sentiment.originalText;
+        sentiment.classList.remove('pump-detected', 'moonshot-mode');
       }
     });
+
+    // Moonshot trigger (only once per day)
+    if (maxDailyProgress >= 5 && !window.moonshotTriggeredToday) {
+      triggerMoonshot();
+      window.moonshotTriggeredToday = true;
+    }
 
     previousPrice = currentUSDPrice;
   }
@@ -226,7 +309,7 @@
 
   function loadTradingViewChart(interval) {
     const container = document.getElementById('chartContainer');
-    container.innerHTML = ''; // Clear any previous content
+    container.innerHTML = '';
 
     const widgetContainer = document.createElement('div');
     widgetContainer.className = 'tradingview-widget-container';
@@ -295,9 +378,15 @@
     updateAll();
   };
 
-  updatePriceAndVolume(); 
+  // Save original sentiment
+  ['short', 'med', 'long'].forEach(term => {
+    const el = document.getElementById(`${term}Sentiment`);
+    el.originalText = el.textContent;
+  });
+
+  updatePriceAndVolume();
   setInterval(updatePriceAndVolume, 5000);
   updateAll();
 </script>
 </body>
-        </html>
+</html>
