@@ -12,14 +12,16 @@
     .toggle-btn{background:#1f2937;border:none;padding:10px;cursor:pointer;border-radius:50%;width:48px;height:48px;display:flex;align-items:center;justify-content:center;transition:all .3s}
     .toggle-btn:hover{background:#374151}
     select{font-size:14px;padding:8px 12px;border-radius:8px;background:#1f2937;color:white;border:1px solid #374151}
-    .live-badge{background:linear-gradient(90deg,#059669,#10b981);color:white;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:bold}
+    .live-badge{background:linear-gradient(90deg,#059669,#10b981);color:white;padding:4px 10px;border-radius:8px;font-size:12px;font-weight:bold}
     .grok-logo{filter:drop-shadow(0 0 4px #9500ff);animation:glow 2s ease-in-out infinite alternate}
     @keyframes glow{from{filter:drop-shadow(0 0 2px #9500ff)}to{filter:drop-shadow(0 0 8px #9500ff)}}
     .pred-card{border-radius:1rem;overflow:hidden;background:linear-gradient(135deg,#1e293b,#0f172a);border:1px solid #334155;box-shadow:0 10px 20px rgba(0,255,255,0.1);position:relative;cursor:pointer;transition:transform .3s}
     .pred-card:hover{transform:scale(1.03)}
-    .pred-header{font-size:1.2rem;font-weight:bold;padding:1.2rem;text-align:center;color:#fff}
+    .pred-header{font-size:1.2rem;font-weight:bold;padding:1.2rem;text-align:center;color:#fff;position:relative}
     .pred-body{padding:1.5rem 1.5rem 2.5rem;text-align:center;position:relative;overflow:hidden}
-    .pred-current{font-size:2.2rem;font-weight:bold;color:#fff;margin-bottom:0.5rem}
+    .pred-current{display:flex;align-items:center;justify-content:center;gap:12px;font-size:2.2rem;font-weight:bold;color:#fff;margin-bottom:0.5rem}
+    .pred-current-price{font-size:2.4rem}
+    .pred-current-change{font-size:1.2rem;padding:4px 10px;border-radius:8px;background:rgba(0,0,0,0.5);min-width:80px}
     .pred-target{font-size:2.8rem;font-weight:bold;color:#00ffff;text-shadow:0 0 10px #00ffff60}
     .pred-sentiment{font-size:1.1rem;margin:1rem 0;padding:0.6rem 1rem;border-radius:999px;display:inline-block;font-weight:bold;transition:all .4s}
     .bullish{background:#059669;color:white}
@@ -45,24 +47,35 @@
 </head>
 <body class="transition-colors duration-500">
 
-  <!-- Top Banner -->
-  <div class="fixed top-0 left-0 right-0 z-50 bg-black/95 border-b border-cyan-800 py-3 text-center shadow-2xl backdrop-blur-sm">
-    <div class="flex flex-col md:flex-row items-center justify-center gap-4 text-xs md:text-sm px-4">
+  <!-- Compact Top Banner -->
+  <div class="fixed top-0 left-0 right-0 z-50 bg-black/95 border-b border-cyan-800 py-2 text-center shadow-2xl backdrop-blur-sm">
+    <div class="flex flex-col md:flex-row items-center justify-center gap-3 text-xs px-4">
       <div class="text-cyan-300 live-badge font-bold">
-        XRP Price: Real Time • Ultimate Bullish Tracker • Click Card for Pro TradingView Candlestick Chart
+        XRP Ultimate Bullish Tracker • Click Card for Pro Chart
       </div>
-      <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 px-6 py-2 rounded-full border border-purple-500/50 shadow-xl">
-        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI4IiBzdHJva2U9IiM5NTAwRkYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSwgNSIvPgo8L3N2Zz4K" alt="Grok" class="w-6 h-6 grok-logo">
-        <span class="text-purple-300 font-bold tracking-wider">Created with Grok • xAI</span>
+      <div class="hidden md:flex items-center gap-3 bg-gradient-to-r from-purple-600/20 to-blue-600/20 px-5 py-1.5 rounded-full border border-purple-500/50 shadow-xl">
+        <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiMwMDAwMDAiLz4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iNCIgZmlsbD0iI0ZGRkZGRiIvPgo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI4IiBzdHJva2U9IiM5NTAwRkYiIHN0cm9rZS13aWR0aD0iMSIgc3Ryb2tlLWRhc2hhcnJheT0iNSwgNSIvPgo8L3N2Zz4K" alt="Grok" class="w-5 h-5 grok-logo">
+        <span class="text-purple-300 font-bold text-sm tracking-wider">Created with Grok • xAI</span>
       </div>
     </div>
   </div>
 
-  <!-- Theme + Currency -->
-  <div class="fixed top-16 right-4 z-50 flex gap-3 items-center">
+  <!-- Main Title -->
+  <div class="fixed top-12 left-0 right-0 z-40 text-center py-4 bg-black/90 backdrop-blur-sm border-b border-cyan-800">
+    <h2 class="text-xl md:text-2xl font-bold text-cyan-400">XRP • Ultimate Bullish Prediction Tracker (December 15, 2025)</h2>
+  </div>
+
+  <!-- Theme + Currency - Fixed icons -->
+  <div class="fixed top-28 right-4 z-50 flex gap-3 items-center">
     <button id="themeToggle" class="toggle-btn">
-      <svg id="sun" class="w-6 h-6 text-yellow-400 hidden" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.708.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/></svg>
-      <svg id="moon" class="w-6 h-6 text-cyan-400" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+      <!-- Moon for dark mode -->
+      <svg id="moonIcon" class="w-6 h-6 text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+        <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+      </svg>
+      <!-- Sun for light mode -->
+      <svg id="sunIcon" class="w-6 h-6 text-yellow-400 hidden" fill="currentColor" viewBox="0 0 20 20">
+        <path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.708.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>
+      </svg>
     </button>
     <select id="currencySelect">
       <option value="USD">$ USD</option>
@@ -76,71 +89,64 @@
     </select>
   </div>
 
-  <div class="max-w-7xl mx-auto p-6 my-24 bg-gray-900/70 rounded-2xl border border-cyan-800">
-    <h2 class="text-2xl font-bold text-cyan-400 mb-6 text-center">XRP • Ultimate Bullish Prediction Tracker (December 15, 2025)</h2>
-  </div>
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto p-4 pt-44 grid grid-cols-1 md:grid-cols-3 gap-8">
 
-  <div class="border-b border-gray-800">
-    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
-      <h1 class="text-3xl font-bold bg-gradient-to-r from-cyan-400 to-blue-600 bg-clip-text text-transparent">XRP Live</h1>
-    </div>
-  </div>
-
-  <div class="max-w-7xl mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-    <!-- Price Cards -->
-    <div class="lg:col-span-3 grid grid-cols-2 md:grid-cols-6 gap-4">
-      <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">XRP Price</div><div id="price" class="text-2xl font-bold mt-1">$2.02</div><div id="change" class="text-sm mt-1 text-green-400">+0.00%</div></div>
-      <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">24h Volume</div><div id="volume" class="text-xl font-semibold mt-1 converted" data-usd="1240000000">$1.24B</div></div>
-      <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">Market Cap</div><div id="marketCap" class="text-xl font-semibold mt-1 converted" data-usd="122000000000">$122B</div></div>
-      <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">Rank</div><div id="rank" class="text-2xl font-bold mt-1 text-cyan-300">#4</div></div>
-      <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">Circulating Supply</div><div class="text-xl font-semibold text-cyan-300 mt-1">~60B XRP</div></div>
-      <div class="bg-gray-900 rounded-xl p-5 border border-gray-800"><div class="text-sm text-gray-400">All-Time High</div><div class="text-xl font-semibold text-cyan-300 mt-1">$3.84 (2018)</div></div>
-    </div>
-
-    <!-- Prediction Tracker Cards -->
-    <div class="lg:col-span-3 grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div class="pred-card" id="shortCard">
-        <div class="pred-header bg-gradient-to-r from-orange-900 to-red-900">Short Term (Q1-Q2 2026)</div>
-        <div class="pred-body">
-          <div class="rocket left">🚀</div>
-          <div class="pred-current" id="shortCurrent">$2.02</div>
-          <div class="pred-target" id="shortTarget">$15+</div>
-          <div class="progress-bar"><div class="progress-fill" id="shortBar" style="width:13.5%"><div class="progress-text" id="shortPercent">13.5% to target</div></div></div>
-          <div class="daily-progress" id="shortDaily">Daily: +0.00%</div>
-          <div class="pred-sentiment bullish" id="shortSentiment">Bullish • ETF Supply Shock</div>
-          <p class="text-xs text-gray-400 mt-4 text-center px-4">Progress toward $15+ driven by ETF inflows & OTC depletion.</p>
+    <!-- Short Term Card -->
+    <div class="pred-card" id="shortCard">
+      <div class="pred-header bg-gradient-to-r from-orange-900 to-red-900">Short Term (Q1-Q2 2026)</div>
+      <div class="pred-body">
+        <div class="rocket left">🚀</div>
+        <div class="pred-current">
+          <span class="pred-current-price" id="shortCurrent">$2.02</span>
+          <span class="pred-current-change" id="shortChange">+0.00%</span>
         </div>
-      </div>
-      <div class="pred-card" id="medCard">
-        <div class="pred-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium Term (2026-2028)</div>
-        <div class="pred-body">
-          <div class="rocket right">🚀</div>
-          <div class="pred-current" id="medCurrent">$2.02</div>
-          <div class="pred-target" id="medTarget">$100+</div>
-          <div class="progress-bar"><div class="progress-fill" id="medBar" style="width:2%"><div class="progress-text" id="medPercent">2% to target</div></div></div>
-          <div class="daily-progress" id="medDaily">Daily: +0.00%</div>
-          <div class="pred-sentiment extreme-bullish" id="medSentiment">Extreme Bullish</div>
-          <p class="text-xs text-gray-400 mt-4 text-center px-4">Institutional surge & XRPL/DeFi growth (100x scenarios).</p>
-        </div>
-      </div>
-      <div class="pred-card" id="longCard">
-        <div class="pred-header bg-gradient-to-r from-emerald-900 to-green-900">Long Term (2030+)</div>
-        <div class="pred-body">
-          <div class="rocket left">🚀</div>
-          <div class="pred-current" id="longCurrent">$2.02</div>
-          <div class="pred-target" id="longTarget">$5,000+</div>
-          <div class="progress-bar"><div class="progress-fill" id="longBar" style="width:0.04%"><div class="progress-text" id="longPercent">0.04% to target</div></div></div>
-          <div class="daily-progress" id="longDaily">Daily: +0.00%</div>
-          <div class="pred-sentiment extreme-bullish" id="longSentiment">Hyper Bullish (Speculative)</div>
-          <p class="text-xs text-gray-400 mt-4 text-center px-4">Global bridge asset dominance (multi-thousand models).</p>
-        </div>
+        <div class="pred-target" id="shortTarget">$15+</div>
+        <div class="progress-bar"><div class="progress-fill" id="shortBar" style="width:13.5%"><div class="progress-text" id="shortPercent">13.5% to target</div></div></div>
+        <div class="daily-progress" id="shortDaily">Daily: +0.00%</div>
+        <div class="pred-sentiment bullish" id="shortSentiment">Bullish • ETF Supply Shock</div>
+        <p class="text-xs text-gray-400 mt-4 text-center px-4">Progress toward $15+ driven by ETF inflows & OTC depletion.</p>
       </div>
     </div>
 
-    <div class="lg:col-span-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-700 rounded-2xl p-5 text-center">
+    <!-- Medium Term Card -->
+    <div class="pred-card" id="medCard">
+      <div class="pred-header bg-gradient-to-r from-cyan-900 to-blue-900">Medium Term (2026-2028)</div>
+      <div class="pred-body">
+        <div class="rocket right">🚀</div>
+        <div class="pred-current">
+          <span class="pred-current-price" id="medCurrent">$2.02</span>
+          <span class="pred-current-change" id="medChange">+0.00%</span>
+        </div>
+        <div class="pred-target" id="medTarget">$100+</div>
+        <div class="progress-bar"><div class="progress-fill" id="medBar" style="width:2%"><div class="progress-text" id="medPercent">2% to target</div></div></div>
+        <div class="daily-progress" id="medDaily">Daily: +0.00%</div>
+        <div class="pred-sentiment extreme-bullish" id="medSentiment">Extreme Bullish</div>
+        <p class="text-xs text-gray-400 mt-4 text-center px-4">Institutional surge & XRPL/DeFi growth (100x scenarios).</p>
+      </div>
+    </div>
+
+    <!-- Long Term Card -->
+    <div class="pred-card" id="longCard">
+      <div class="pred-header bg-gradient-to-r from-emerald-900 to-green-900">Long Term (2030+)</div>
+      <div class="pred-body">
+        <div class="rocket left">🚀</div>
+        <div class="pred-current">
+          <span class="pred-current-price" id="longCurrent">$2.02</span>
+          <span class="pred-current-change" id="longChange">+0.00%</span>
+        </div>
+        <div class="pred-target" id="longTarget">$5,000+</div>
+        <div class="progress-bar"><div class="progress-fill" id="longBar" style="width:0.04%"><div class="progress-text" id="longPercent">0.04% to target</div></div></div>
+        <div class="daily-progress" id="longDaily">Daily: +0.00%</div>
+        <div class="pred-sentiment extreme-bullish" id="longSentiment">Hyper Bullish (Speculative)</div>
+        <p class="text-xs text-gray-400 mt-4 text-center px-4">Global bridge asset dominance (multi-thousand models).</p>
+      </div>
+    </div>
+
+    <!-- Bottom Motivation -->
+    <div class="md:col-span-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-700 rounded-2xl p-6 text-center mt-8">
       <div class="text-4xl font-bold text-green-400 animate-pulse">XRP 24/7</div>
-      <div class="text-lg text-green-300">CRYPTO NEVER SLEEPS • XRP MOON MOMENTUM</div>
+      <div class="text-lg text-green-300 mt-2">CRYPTO NEVER SLEEPS • TO THE MOON MOMENTUM</div>
     </div>
   </div>
 
@@ -203,17 +209,15 @@
     const sym = symbols[currentCurrency];
     const displayPrice = (currentUSDPrice * rate).toFixed(4);
 
-    document.getElementById('price').textContent = sym + displayPrice;
-
     const shortTermChangePct = previousPrice ? ((currentUSDPrice - previousPrice) / previousPrice * 100) : 0;
-    const changeEl = document.getElementById('change');
-    changeEl.textContent = (shortTermChangePct > 0 ? '+' : '') + shortTermChangePct.toFixed(2) + '%';
-    changeEl.className = 'text-sm mt-1 ' + (shortTermChangePct > 0 ? 'text-green-400' : 'text-red-400');
 
-    document.getElementById('volume').textContent = sym + bigNumber(currentVolumeUSD * rate);
-    document.getElementById('marketCap').textContent = sym + bigNumber(currentMarketCap * rate);
+    ['short', 'med', 'long'].forEach(term => {
+      document.getElementById(`${term}Current`).textContent = sym + displayPrice;
+      const changeEl = document.getElementById(`${term}Change`);
+      changeEl.textContent = (shortTermChangePct > 0 ? '+' : '') + shortTermChangePct.toFixed(2) + '%';
+      changeEl.className = 'pred-current-change ' + (shortTermChangePct > 0 ? 'text-green-400 bg-green-900/40' : 'text-red-400 bg-red-900/40');
+    });
 
-    // Short-term rockets on meaningful pump
     if (shortTermChangePct > 0.05) {
       ['short', 'med', 'long'].forEach(term => {
         const rocket = document.querySelector(`#${term}Card .rocket`);
@@ -227,14 +231,12 @@
       });
     }
 
-    // Daily reset
     const todayUTC = new Date().getUTCDate();
     if (lastDay === null || todayUTC !== lastDay) {
       dayStartPrice = currentUSDPrice;
       lastDay = todayUTC;
       window.moonshotTriggeredToday = false;
 
-      // Reset sentiment text
       ['short', 'med', 'long'].forEach(term => {
         const sentiment = document.getElementById(`${term}Sentiment`);
         sentiment.textContent = sentiment.originalText;
@@ -248,7 +250,6 @@
       const targetUSD = targets[term];
       const overallPercent = Math.min(100, (currentUSDPrice / targetUSD) * 100);
 
-      document.getElementById(`${term}Current`).textContent = sym + displayPrice;
       document.getElementById(`${term}Target`).textContent = sym + (targetUSD * rate).toFixed(0) + '+';
       document.getElementById(`${term}Bar`).style.width = overallPercent + '%';
       document.getElementById(`${term}Percent`).textContent = overallPercent.toFixed(2) + '% to target';
@@ -274,7 +275,6 @@
       }
     });
 
-    // Moonshot trigger (only once per day)
     if (maxDailyProgress >= 5 && !window.moonshotTriggeredToday) {
       triggerMoonshot();
       window.moonshotTriggeredToday = true;
@@ -301,9 +301,6 @@
         currentRank = d.market_cap_rank;
       } catch(ee) {}
     }
-    document.getElementById('volume').dataset.usd = currentVolumeUSD;
-    document.getElementById('marketCap').dataset.usd = currentMarketCap;
-    document.getElementById('rank').textContent = '#' + currentRank;
     updateAll();
   }
 
@@ -363,12 +360,15 @@
   document.getElementById('medCard').onclick = () => showOverlay('D');
   document.getElementById('longCard').onclick = () => showOverlay('W');
 
+  // Fixed theme toggle with proper icon switching
   document.getElementById('themeToggle').onclick = () => {
     document.documentElement.classList.toggle('dark');
     const isDark = document.documentElement.classList.contains('dark');
     document.body.style.background = isDark ? '#000' : '#f3f4f6';
-    document.getElementById('sun').classList.toggle('hidden', !isDark);
-    document.getElementById('moon').classList.toggle('hidden', isDark);
+
+    // Toggle icons
+    document.getElementById('moonIcon').classList.toggle('hidden', !isDark);
+    document.getElementById('sunIcon').classList.toggle('hidden', isDark);
   };
 
   document.getElementById('currencySelect').value = currentCurrency;
@@ -378,7 +378,6 @@
     updateAll();
   };
 
-  // Save original sentiment
   ['short', 'med', 'long'].forEach(term => {
     const el = document.getElementById(`${term}Sentiment`);
     el.originalText = el.textContent;
@@ -389,4 +388,4 @@
   updateAll();
 </script>
 </body>
-</html>
+  </html>
