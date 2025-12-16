@@ -223,7 +223,7 @@
         <!-- Basic visible counter using your freecounterstat code (working HTTPS) -->
         <img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=87fxqfm966l84an29sfgkbmdynkpfut8" 
              alt="Total Page Views" border="0" 
-             class="mx-auto h-5" />
+             class="mx-auto h-6" />
       </div>
     </div>
 
@@ -362,8 +362,28 @@
     }
   }
 
-  myHoldingsInput.addEventListener('input', updateMyMoonCalculator);
-  myMoonPriceInput.addEventListener('input', updateMyMoonCalculator);
+    // Remember My Moon Calculator values using localStorage
+  // Load saved values on page load
+  if (localStorage.getItem('myHoldings')) {
+    myHoldingsInput.value = localStorage.getItem('myHoldings');
+  }
+  if (localStorage.getItem('myMoonPrice')) {
+    myMoonPriceInput.value = localStorage.getItem('myMoonPrice');
+  }
+
+  // Save values whenever user changes them
+  myHoldingsInput.addEventListener('input', () => {
+    localStorage.setItem('myHoldings', myHoldingsInput.value);
+    updateMyMoonCalculator();
+  });
+
+  myMoonPriceInput.addEventListener('input', () => {
+    localStorage.setItem('myMoonPrice', myMoonPriceInput.value);
+    updateMyMoonCalculator();
+  });
+
+  // Initial update with saved values
+  updateMyMoonCalculator();
 
   function updateAll() {
     const rate = rates[currentCurrency];
@@ -546,5 +566,4 @@
   }, 60000);
 </script>
 </body>
-</html>
-
+  </html>
