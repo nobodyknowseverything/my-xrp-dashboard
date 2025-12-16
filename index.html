@@ -213,7 +213,7 @@
       </div>
     </div>
 
-        <!-- Bottom Motivation with Embedded Visitor Counter -->
+    <!-- Bottom Motivation with Embedded Visitor Counter -->
     <div class="md:col-span-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-700 rounded-2xl p-8 text-center mt-8">
       <div class="text-4xl font-bold text-green-400 animate-pulse mb-4">XRP 24/7</div>
       <div class="text-lg text-green-300 mb-6">CRYPTO NEVER SLEEPS • TO THE MOON MOMENTUM</div>
@@ -221,14 +221,14 @@
       <!-- Embedded Visitor Counter - Smaller & Centered -->
       <div class="text-cyan-400">
         <p class="text-sm font-semibold mb-2">Total Page Views</p>
-        <!-- hitwebcounter Code START -->
-        <a href="https://www.hitwebcounter.com/" target="_blank">
+        <!-- hitwebcounter Code (Fixed with HTTPS) -->
         <img src="https://hitwebcounter.com/counter/counter.php?page=21463958&style=0003&nbdigits=6&type=page&initCount=100" 
-             title="Free Tools" alt="Web Counter" border="0" 
-             class="mx-auto h-6" />  <!-- Makes it smaller and centered -->
-        </a>
+             alt="Total Page Views" border="0" 
+             class="mx-auto h-8" />
       </div>
     </div>
+
+  </div>
 
   <!-- Chart Overlay -->
   <div id="chartOverlay" class="overlay">
@@ -243,7 +243,7 @@
   const cheeringSound = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-stadium-crowd-cheering-1688.mp3');
 
   let currentUSDPrice = 2.02;
-  let priceChange24h = 0;  // New: Real 24h % change
+  let priceChange24h = 0;  // Real 24h % change
   let previousPrice = currentUSDPrice;
   let dayStartPrice = null;
   let lastDay = null;
@@ -252,7 +252,6 @@
 
   const targets = {short: 15, med: 100, long: 5000};
 
-  // Define end dates for each timeframe (Dec 31 of the final year)
   const timeframeEndDates = {
     short: new Date('2026-12-31T23:59:59'),
     med: new Date('2028-12-31T23:59:59'),
@@ -265,8 +264,7 @@
 
   let lastRocketSide = {};
 
-  // Average daily % change over last 30 days (fallback)
-  let avgDailyChange = 0.5; // fallback placeholder in %
+  let avgDailyChange = 0.5;
 
   function formatFull(value, sym) {
     return sym + value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -288,7 +286,6 @@
     return Math.ceil(days) + ' days';
   }
 
-  // Calculate remaining days to end of timeframe
   function getRemainingDaysToEnd(term) {
     const endDate = timeframeEndDates[term];
     const now = new Date();
@@ -374,7 +371,6 @@
     const sym = symbols[currentCurrency];
     const displayPrice = (currentUSDPrice * rate).toFixed(4);
 
-    // Use real 24h change from API
     const change24hPct = priceChange24h;
 
     ['short', 'med', 'long'].forEach(term => {
@@ -392,7 +388,6 @@
       document.getElementById(`${term}Bar`).style.width = overallPercent + '%';
       document.getElementById(`${term}Percent`).textContent = overallPercent.toFixed(2) + '% to target';
 
-      // Days to target estimate
       const daysEl = document.getElementById(`${term}Days`);
       if (avgDailyChange > 0 && currentUSDPrice < targetUSD) {
         daysEl.textContent = 'Est. days to target: ' + calculateDaysToTarget(currentUSDPrice, targetUSD, avgDailyChange);
@@ -402,8 +397,6 @@
         daysEl.textContent = 'Est. days to target: N/A (no growth)';
       }
 
-    
-      // Updated label and use real 24h change
       const dailyEl = document.getElementById(`${term}Daily`);
       dailyEl.textContent = '24h Change: ' + (change24hPct > 0 ? '+' : '') + change24hPct.toFixed(2) + '%';
       dailyEl.className = 'daily-progress ' + (change24hPct > 0 ? 'text-green-400' : 'text-red-400');
@@ -422,7 +415,6 @@
       }
     });
 
-    // Rocket animation on positive price movement (kept for fun on any update >0.05%)
     if (change24hPct > 0.05) {
       ['short', 'med', 'long'].forEach(term => {
         const rocket = document.querySelector(`#${term}Card .rocket`);
@@ -447,7 +439,7 @@
       if(r.ok){
         const d = await r.json();
         currentUSDPrice = parseFloat(d.lastPrice);
-        priceChange24h = parseFloat(d.priceChangePercent);  // Real 24h % change
+        priceChange24h = parseFloat(d.priceChangePercent);
       }
     } catch(e) {
       try {
@@ -540,8 +532,6 @@
   setInterval(updatePriceAndVolume, 5000);
   updateAll();
 
-    updateAll();
-
   // Force immediate countdown update on page load
   ['short', 'med', 'long'].forEach(term => {
     document.getElementById(`${term}Countdown`).textContent = 
@@ -557,4 +547,4 @@
   }, 60000);
 </script>
 </body>
-</html>
+      </html>
