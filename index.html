@@ -365,7 +365,6 @@
     let newPumpState = currentPumpState;
     let newMoonshotState = currentMoonshotState;
 
-    // Hysteresis logic for Pump and Moonshot
     if (change24hPct > 10) {
       newMoonshotState = true;
       newPumpState = false;
@@ -383,7 +382,6 @@
       newMoonshotState = false;
     }
 
-    // Fresh Moonshot entry → confetti + sound
     if (newMoonshotState && !currentMoonshotState) {
       confetti({particleCount: 300, spread: 120, origin: { y: 0.6 }});
       rocketSound.currentTime = 0; rocketSound.play();
@@ -433,7 +431,6 @@
       }
     });
 
-    // Rocket animation on > +2% 24h change
     if (change24hPct > 2.0) {
       ['short', 'med', 'long'].forEach(term => {
         const rocket = document.querySelector(`#${term}Card .rocket`);
@@ -447,7 +444,6 @@
       });
     }
 
-    // Update state
     currentPumpState = newPumpState;
     currentMoonshotState = newMoonshotState;
 
@@ -532,10 +528,32 @@
   document.getElementById('medCard').onclick = () => showOverlay('D');
   document.getElementById('longCard').onclick = () => showOverlay('W');
 
+  // === Theme Toggle with Persistence ===
+  const savedTheme = localStorage.getItem('xrpTheme');
+  if (savedTheme === 'light') {
+    document.documentElement.classList.remove('dark');
+    document.body.style.background = '#f3f4f6';
+  } else {
+    document.documentElement.classList.add('dark');
+    document.body.style.background = '#000';
+  }
+
+  // Update toggle icons to match saved state
+  const isDark = document.documentElement.classList.contains('dark');
+  document.querySelector('.icon-moon').style.display = isDark ? 'block' : 'none';
+  document.querySelector('.icon-sun').style.display = isDark ? 'none' : 'block';
+
   document.getElementById('themeToggle').onclick = () => {
     document.documentElement.classList.toggle('dark');
-    const isDark = document.documentElement.classList.contains('dark');
-    document.body.style.background = isDark ? '#000' : '#f3f4f6';
+    const isDarkNow = document.documentElement.classList.contains('dark');
+    document.body.style.background = isDarkNow ? '#000' : '#f3f4f6';
+
+    // Save preference
+    localStorage.setItem('xrpTheme', isDarkNow ? 'dark' : 'light');
+
+    // Update icons
+    document.querySelector('.icon-moon').style.display = isDarkNow ? 'block' : 'none';
+    document.querySelector('.icon-sun').style.display = isDarkNow ? 'none' : 'block';
   };
 
   document.getElementById('currencySelect').value = currentCurrency;
