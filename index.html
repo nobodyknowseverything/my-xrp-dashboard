@@ -126,7 +126,7 @@
         </div>
         <div class="pred-target" id="shortTarget">$15+</div>
         <div class="progress-bar"><div class="progress-fill" id="shortBar" style="width:13.5%"><div class="progress-text" id="shortPercent">13.5% to target</div></div></div>
-        <div class="days-to-target" id="shortDays">Est. days to target: Calculating...</div>
+        <div class="days-to-target" id="shortDays">Estimated days to target: Calculating...</div>
         <div class="countdown-to-end" id="shortCountdown">Predicted Days Remaining: Calculating...</div>
         <div class="pred-sentiment bullish" id="shortSentiment">Bullish</div>
         <p class="text-xs text-gray-400 mt-4 text-center px-4">Driven by ETF inflows • OTC & Exchanges Supply Shock.</p>
@@ -144,7 +144,7 @@
         </div>
         <div class="pred-target" id="medTarget">$100+</div>
         <div class="progress-bar"><div class="progress-fill" id="medBar" style="width:2%"><div class="progress-text" id="medPercent">2% to target</div></div></div>
-        <div class="days-to-target" id="medDays">Est. days to target: Calculating...</div>
+        <div class="days-to-target" id="medDays">Estimated days to target: Calculating...</div>
         <div class="countdown-to-end" id="medCountdown">Predicted Days Remaining: Calculating...</div>
         <div class="pred-sentiment extreme-bullish" id="medSentiment">Extreme Bullish</div>
         <p class="text-xs text-gray-400 mt-4 text-center px-4">Global Institutional & Banking mass adoption • XRPL/DeFi growth (Mkt Cap Multiplier).</p>
@@ -162,7 +162,7 @@
         </div>
         <div class="pred-target" id="longTarget">$5,000+</div>
         <div class="progress-bar"><div class="progress-fill" id="longBar" style="width:0.04%"><div class="progress-text" id="longPercent">0.04% to target</div></div></div>
-        <div class="days-to-target" id="longDays">Est. days to target: Calculating...</div>
+        <div class="days-to-target" id="longDays">Estimated days to target: Calculating...</div>
         <div class="countdown-to-end" id="longCountdown">Predicted Days Remaining: Calculating...</div>
         <div class="pred-sentiment extreme-bullish" id="longSentiment">Hyper Bullish</div>
         <p class="text-xs text-gray-400 mt-4 text-center px-4">Digital Asset Tokenization • World Digital Currency • Global Bridging Dominance.</p>
@@ -212,13 +212,14 @@
     <!-- Bottom Motivation -->
     <div class="md:col-span-3 bg-gradient-to-r from-green-900/30 to-emerald-900/30 border border-green-700 rounded-2xl p-8 text-center mt-8">
       <div class="text-4xl font-bold text-green-400 animate-pulse mb-4">XRP 24/7</div>
-      <div class="text-lg text-green-300 mb-6">CRYPTO NEVER SLEEPS • TO THE MOON MOMENTUM</div>
-      
+      <div class="text-lg text-green-300 mb-6">CRYPTO NEVER SLEEPS • XRP MOON PREDICTION</div>
+ 
       <div class="text-cyan-400">
         <p class="text-sm font-semibold mb-2">Total Page Views</p>
         <img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=87fxqfm966l84an29sfgkbmdynkpfut8" 
              alt="Total Page Views" border="0" 
              class="mx-auto h-6" />
+      
       </div>
     </div>
 
@@ -365,7 +366,6 @@
     let newPumpState = currentPumpState;
     let newMoonshotState = currentMoonshotState;
 
-    // Hysteresis logic for Pump and Moonshot
     if (change24hPct > 10) {
       newMoonshotState = true;
       newPumpState = false;
@@ -383,7 +383,6 @@
       newMoonshotState = false;
     }
 
-    // Fresh Moonshot entry → confetti + sound
     if (newMoonshotState && !currentMoonshotState) {
       confetti({particleCount: 300, spread: 120, origin: { y: 0.6 }});
       rocketSound.currentTime = 0; rocketSound.play();
@@ -433,7 +432,6 @@
       }
     });
 
-    // Rocket animation on > +2% 24h change
     if (change24hPct > 2.0) {
       ['short', 'med', 'long'].forEach(term => {
         const rocket = document.querySelector(`#${term}Card .rocket`);
@@ -447,7 +445,6 @@
       });
     }
 
-    // Update state
     currentPumpState = newPumpState;
     currentMoonshotState = newMoonshotState;
 
@@ -532,10 +529,32 @@
   document.getElementById('medCard').onclick = () => showOverlay('D');
   document.getElementById('longCard').onclick = () => showOverlay('W');
 
+  // === Theme Toggle with Persistence ===
+  const savedTheme = localStorage.getItem('xrpTheme');
+  if (savedTheme === 'light') {
+    document.documentElement.classList.remove('dark');
+    document.body.style.background = '#f3f4f6';
+  } else {
+    document.documentElement.classList.add('dark');
+    document.body.style.background = '#000';
+  }
+
+  // Update toggle icons to match saved state
+  const isDark = document.documentElement.classList.contains('dark');
+  document.querySelector('.icon-moon').style.display = isDark ? 'block' : 'none';
+  document.querySelector('.icon-sun').style.display = isDark ? 'none' : 'block';
+
   document.getElementById('themeToggle').onclick = () => {
     document.documentElement.classList.toggle('dark');
-    const isDark = document.documentElement.classList.contains('dark');
-    document.body.style.background = isDark ? '#000' : '#f3f4f6';
+    const isDarkNow = document.documentElement.classList.contains('dark');
+    document.body.style.background = isDarkNow ? '#000' : '#f3f4f6';
+
+    // Save preference
+    localStorage.setItem('xrpTheme', isDarkNow ? 'dark' : 'light');
+
+    // Update icons
+    document.querySelector('.icon-moon').style.display = isDarkNow ? 'block' : 'none';
+    document.querySelector('.icon-sun').style.display = isDarkNow ? 'none' : 'block';
   };
 
   document.getElementById('currencySelect').value = currentCurrency;
@@ -569,4 +588,3 @@
 </script>
 </body>
 </html>
-
